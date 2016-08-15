@@ -7,6 +7,9 @@ if [ $# -ne 1 ]; then
   exit 64
 fi
 
+pending_migrations(){
+  git diff --quiet "$1"..master -- db/migrate
+}
 environment=$1
 git fetch "$environment"
 
@@ -21,3 +24,7 @@ if [ "$master_sha" = "$environment_sha" ]; then
 fi
 
 git push "$environment" master
+
+if pending_migrations "$environment_sha"; then
+  heroku run rake db:migrate --remote "$environment"
+fi
